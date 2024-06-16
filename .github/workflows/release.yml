@@ -1,20 +1,45 @@
-name: Release
-on:
-  push:
-    branches: [ main ]
+name: Manage versions
+
+on: [push, pull_request]
+
 jobs:
-  release:
+  bump:
     runs-on: ubuntu-latest
+   
     steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-        - name: Semantic Release
-          uses: cycjimmy/semantic-release-action@v2
-          id: semantic
-          with:
-            extra_plugins: |
-              @semantic-release/changelog
-              @semantic-release/git
-              conventional-changelog-eslint
-          env:
-            GITHUB_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Checkout action is required
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - name: Bump Versions
+        uses: michmich112/version-bumper@master
+        with:
+          scheme: semantic
+          username: DoomGuy
+          email: guy@doom.id
+          version-file: "./package.json"
+          files: >
+            [
+              "./package-lock.json"
+            ] 
+          rules: >
+            [{
+              "trigger":"commit",
+              "branch": "staging",
+              "suffix": "-beta",
+              "bump":"build"
+            },{
+              "trigger": "pull-request",
+              "destBranch": "main",
+              "suffix": "-rc",
+              "bump": "minor",
+              "tag": true
+            }, {
+              "trigger":"commit",
+              "branch":"release",
+              "bump":"major",
+              "tag": true,
+              "reset":["minor","build"]
+            }]'
+          github-token: ${{ secrets.NPM_TOKEN }}
