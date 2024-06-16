@@ -1,1 +1,1 @@
-# semantic-release.
+# semantic-release
